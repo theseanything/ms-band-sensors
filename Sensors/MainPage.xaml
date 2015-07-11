@@ -1,0 +1,20 @@
+﻿<Page
+    x:Class="Sensors.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Sensors"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <TextBlock HorizontalAlignment="Left" Margin="107,70,0,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="20" Text="COLLECT SENSOR INFO"/>
+        <StackPanel Orientation="Horizontal" Margin="107,107,0,0">
+            <TextBox x:Name="TimeInterval" InputScope="Number"  Margin="0,0,0,0" Text="20" FontSize="20" VerticalAlignment="Top" HorizontalAlignment="Left" TextChanged="TimeInterval_TextChanged" MaxLength="4" />
+            <Button x:Name="ToggleRun" Content="Run" HorizontalAlignment="Left" Margin="0,-3,0,0" VerticalAlignment="Top" Click="Run_Button_Click" FontSize="20"/>
+        </StackPanel>
+        <ScrollViewer Margin="110,175,110,110" VerticalScrollBarVisibility="Auto">
+            <TextBlock TextWrapping="Wrap" Text="{Binding StatusMessage}" FontSize="20" TextAlignment="Left"/>
+        </ScrollViewer>
+    </Grid>
+</Page>
