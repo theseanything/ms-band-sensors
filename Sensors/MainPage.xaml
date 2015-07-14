@@ -9,12 +9,20 @@
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
         <TextBlock HorizontalAlignment="Left" Margin="107,70,0,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="20" Text="COLLECT SENSOR INFO"/>
-        <StackPanel Orientation="Horizontal" Margin="107,107,0,0">
-            <TextBox x:Name="TimeInterval" InputScope="Number"  Margin="0,0,0,0" Text="20" FontSize="20" VerticalAlignment="Top" HorizontalAlignment="Left" TextChanged="TimeInterval_TextChanged" MaxLength="4" />
-            <Button x:Name="ToggleRun" Content="Run" HorizontalAlignment="Left" Margin="0,-3,0,0" VerticalAlignment="Top" Click="Run_Button_Click" FontSize="20"/>
+        <StackPanel Orientation="Vertical" Margin="107,107,0,0">
+            <StackPanel Orientation="Horizontal" >
+                <TextBlock x:Name="TimeIntervalTitle" TextWrapping="Wrap" Text="Time to record (seconds)" FontSize="20" Width="235" Height="24" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,10,0,0"/>
+            <TextBox x:Name="TimeInterval" InputScope="Number"  Margin="3,0,0,0" Text="20" FontSize="20" VerticalAlignment="Top" HorizontalAlignment="Left" TextChanged="TimeInterval_TextChanged" MaxLength="4" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0,10,0,0" >
+                <TextBlock x:Name="FileNameTitle" TextWrapping="Wrap" Text="Filename" FontSize="20" Width="235" Height="24" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,10,0,0"/>
+                <TextBox x:Name="Filename"  Margin="3,0,0,0" FontSize="20" VerticalAlignment="Top" HorizontalAlignment="Left" TextChanged="Filename_TextChanged" MaxLength="30" PlaceholderText="Filename" Text="data" Width="124" />
+            </StackPanel>
+            <Button x:Name="ToggleRun" Content="Run" HorizontalAlignment="Left" Margin="0,10,0,0" VerticalAlignment="Top" Click="Run_Button_Click" FontSize="20"/>
+            <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="0,10,0,0">
+                <TextBlock TextWrapping="Wrap" Text="{Binding StatusMessage}" FontSize="20" TextAlignment="Left"/>
+            </ScrollViewer>
         </StackPanel>
-        <ScrollViewer Margin="110,175,110,110" VerticalScrollBarVisibility="Auto">
-            <TextBlock TextWrapping="Wrap" Text="{Binding StatusMessage}" FontSize="20" TextAlignment="Left"/>
-        </ScrollViewer>
+        
     </Grid>
 </Page>

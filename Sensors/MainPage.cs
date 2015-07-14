@@ -25,7 +25,13 @@ namespace Sensors
         private StorageFile file;
         private StringBuilder data = new StringBuilder();
         private int interval = 20;
+        string filename = "data";
         private int heart = 0;
+        Stopwatch gyrow = new Stopwatch();
+        Stopwatch accw = new Stopwatch();
+        Stopwatch hrw = new Stopwatch();
+
+        Stopwatch skinw = new Stopwatch();
 
 
         private void TimeInterval_TextChanged(object sender, TextChangedEventArgs e)
@@ -42,16 +48,28 @@ namespace Sensors
             
         }
 
+        private void Filename_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (!String.IsNullOrEmpty(TimeInterval.Text) && !String.IsNullOrWhiteSpace(TimeInterval.Text))
+            {
+                ToggleRun.IsEnabled = true;
+            }
+            else
+            {
+                ToggleRun.IsEnabled = false;
+            }
+
+        }
+
 
 
         private async void Run_Button_Click(object sender, RoutedEventArgs e)
         {
-
-            ToggleRun.IsEnabled = false;
-
             this.viewModel.StatusMessage = "Loading .";
 
-            file = await folder.CreateFileAsync("datanew.csv", CreationCollisionOption.ReplaceExisting);
+            filename = Filename.Text;
+
+            file = await folder.CreateFileAsync(filename + ".csv", CreationCollisionOption.GenerateUniqueName);
 
             this.viewModel.StatusMessage = "Loading ..";
 
@@ -84,29 +102,57 @@ namespace Sensors
                     {
                         await heart_rate.RequestUserConsentAsync();
                     }
-                    heart_rate.ReadingChanged += HeartRate_ReadingChanged;
+                    heart_rate.ReadingChanged += (o, args) =>
+                    {
+                        Debug.WriteLine("hrr:{0}", hrw.ElapsedMilliseconds);
+                        hrw.Restart();
+                        IBandHeartRateReading hr = args.SensorReading;
+                        heart = hr.HeartRate;
+                    };
 
                     // GYROSCOPE
                     var gyroscope = bandClient.SensorManager.Gyroscope;
                     gyroscope.ReportingInterval = TimeSpan.FromMilliseconds(16);
-                    gyroscope.ReadingChanged += Gyroscope_ReadingChanged;
+
+                    gyroscope.ReadingChanged += (o, args) => {
+                        Debug.WriteLine("gry:{0}", gyrow.ElapsedMilliseconds);
+                        gyrow.Restart();
+                        IBandGyroscopeReading gyro = args.SensorReading;
+                        data.AppendLine(string.Format(",{0:F3},{1:F3},{2:F3},{3}", gyro.AngularVelocityX, gyro.AngularVelocityY, gyro.AngularVelocityZ, heart));
+
+                    };
                     Debug.WriteLine("3");
 
                     // ACCELEROMETER
                     var accelerometer = bandClient.SensorManager.Accelerometer;
                     accelerometer.ReportingInterval = TimeSpan.FromMilliseconds(16);
-                    accelerometer.ReadingChanged += Accelerometer_ReadingChanged;
+                    accelerometer.ReadingChanged += (o, args) =>
+                    {
+                        Debug.WriteLine("acc:{0}", accw.ElapsedMilliseconds);
+                        accw.Restart();
+                        IBandAccelerometerReading accel = args.SensorReading;
+                        data.Append(string.Format("{0:F2},{1:F2},{2:F2}", accel.AccelerationX, accel.AccelerationY, accel.AccelerationZ));
+
+                    };
                     Debug.WriteLine("4");
 
                     //SKIN TEMP
                     var skinTemp = bandClient.SensorManager.SkinTemperature;
-                    skinTemp.ReadingChanged +=skinTemp_ReadingChanged;
+                    skinTemp.ReadingChanged += (o, args) =>
+                    {
+                        Debug.WriteLine("ski:{0}", skinw.ElapsedMilliseconds);
+                        skinw.Restart();
+                    };
 
                     // Receive Accelerometer data for a while, then stop the subscription.
                     this.viewModel.StatusMessage = "Starting to record...";
+                    accw.Start();
                     await accelerometer.StartReadingsAsync();
+                    hrw.Start();
                     await heart_rate.StartReadingsAsync();
+                    gyrow.Start();
                     await gyroscope.StartReadingsAsync();
+                    skinw.Start();
                     await skinTemp.StartReadingsAsync();
 
             
@@ -116,9 +162,13 @@ namespace Sensors
 
                
                     await accelerometer.StopReadingsAsync();
+                    accw.Stop();
                     await heart_rate.StopReadingsAsync();
+                    hrw.Stop();
                     await gyroscope.StopReadingsAsync();
+                    gyrow.Stop();
                     await skinTemp.StopReadingsAsync();
+                    skinw.Stop();
                     Debug.WriteLine("6");
 
                     await FileIO.WriteTextAsync(file, data.ToString());
@@ -132,41 +182,6 @@ namespace Sensors
             }
             Debug.WriteLine("8");
             ToggleRun.IsEnabled = true;
-        }
-
-        private async void skinTemp_ReadingChanged(object sender, BandSensorReadingEventArgs<IBandSkinTemperatureReading> e)
-        {
-            IBandSkinTemperatureReading skintemp = e.SensorReading;
-            await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
-            {
-                this.viewModel.StatusMessage = skintemp.Temperature.ToString();
-            }).AsTask();
-        }
-
-        private async void Accelerometer_ReadingChanged(object sender, BandSensorReadingEventArgs<IBandAccelerometerReading> e)
-        {
-            IBandAccelerometerReading accel = e.SensorReading;
-            await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
-            {
-                data.Append(string.Format("{0:F2},{1:F2},{2:F2}", accel.AccelerationX, accel.AccelerationY, accel.AccelerationZ));
-            }).AsTask();
-        }
-
-        private async void HeartRate_ReadingChanged(object sender, BandSensorReadingEventArgs<IBandHeartRateReading> e)
-        {
-            IBandHeartRateReading hr = e.SensorReading;
-            await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => {
-                heart = hr.HeartRate; 
-            }).AsTask();
-        }
-
-        private async void Gyroscope_ReadingChanged(object sender, BandSensorReadingEventArgs<IBandGyroscopeReading> e)
-        {
-            IBandGyroscopeReading gyro = e.SensorReading;
-            await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
-            {
-                data.AppendLine(string.Format(",{0:F3},{1:F3},{2:F3},{3}", gyro.AngularVelocityX, gyro.AngularVelocityY, gyro.AngularVelocityZ, heart));
-            }).AsTask();
         }
 
     }
