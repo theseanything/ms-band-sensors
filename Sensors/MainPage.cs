@@ -166,6 +166,7 @@ namespace Sensors
                     }
 
                     await FileIO.WriteTextAsync(file, data.ToString());
+                    data.Clear();
                     this.viewModel.StatusMessage = "File Saved.";
                 }
             }
